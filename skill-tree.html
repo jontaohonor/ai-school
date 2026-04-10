@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的技能树 · AI育学园</title>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f7ff; --card:#fff; --ink:#1a1a2e;
+  --green:#2d6a4f; --sun:#f4a261; --red:#e63946;
+  --gold:#f4a261; --muted:#94a3b8; --radius:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:80px;}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#2d6a4f,#52b788);padding:28px 20px 56px;text-align:center;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;bottom:-2px;left:-5%;width:110%;height:40px;background:var(--bg);border-radius:50% 50% 0 0;}
+.avatar-wrap{position:relative;display:inline-block;margin-bottom:10px;}
+.avatar{width:82px;height:82px;border-radius:50%;background:white;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:2.4rem;box-shadow:0 4px 20px rgba(0,0,0,.18);animation:float 3s ease-in-out infinite;cursor:pointer;border:3px solid rgba(255,255,255,.4);}
+.avatar-edit{position:absolute;bottom:2px;right:2px;background:var(--sun);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.name-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:3px;}
+.student-name{font-family:'ZCOOL XiaoWei',serif;font-size:1.4rem;color:white;letter-spacing:3px;}
+.name-edit-btn{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:white;font-size:.65rem;padding:2px 8px;border-radius:10px;cursor:pointer;letter-spacing:1px;transition:background .2s;}
+.name-edit-btn:hover{background:rgba(255,255,255,.35);}
+
+.student-id-row{font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:10px;letter-spacing:1px;}
+
+.badge-showcase{display:flex;justify-content:center;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.showcase-badge{font-size:1.2rem;background:rgba(255,255,255,.15);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,.2);}
+
+.stats-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.stat-pill{background:rgba(255,255,255,.18);border-radius:20px;padding:5px 13px;color:white;font-size:.8rem;font-weight:700;backdrop-filter:blur(4px);}
+.stat-pill span{opacity:.75;font-weight:400;}
+
+/* section */
+.section{max-width:720px;margin:0 auto;padding:0 16px;}
+.sec-title{font-family:'ZCOOL XiaoWei',serif;font-size:1.15rem;color:var(--green);letter-spacing:3px;margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
+
+/* 打卡 */
+.streak-card{background:var(--card);border-radius:var(--radius);padding:18px 20px;box-shadow:0 2px 14px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;}
+.streak-fire{font-size:2.4rem;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.streak-num{font-family:'ZCOOL XiaoWei',serif;font-size:2rem;color:var(--sun);line-height:1;}
+.streak-label{font-size:.82rem;color:var(--muted);margin-top:2px;}
+.streak-dots{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;}
+.sdot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;}
+.sdot.done{background:var(--sun);color:white;}
+.sdot.today{background:var(--green);color:white;box-shadow:0 0 0 3px rgba(45,106,79,.25);}
+.sdot.empty{background:#f0f0f0;color:var(--muted);}
+
+/* 技能树 */
+.college-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;}
+.col-card{background:var(--card);border-radius:15px;padding:15px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s;border-top:4px solid var(--cc);}
+.col-card:hover{transform:translateY(-4px);box-shadow:0 8px 22px rgba(0,0,0,.12);}
+.col-card.locked{opacity:.45;cursor:default;}
+.col-card.locked:hover{transform:none;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.col-icon{font-size:1.7rem;margin-bottom:7px;display:block;}
+.col-name{font-family:'ZCOOL XiaoWei',serif;font-size:.95rem;color:var(--ink);margin-bottom:7px;letter-spacing:1px;}
+.pb-wrap{height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:5px;}
+.pb-fill{height:100%;background:var(--cc);border-radius:3px;transition:width 1s cubic-bezier(.34,1.56,.64,1);}
+.pb-text{font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;}
+.pb-text b{color:var(--cc);}
+.cdots{display:flex;gap:3px;flex-wrap:wrap;margin-top:7px;}
+.cdot{width:9px;height:9px;border-radius:50%;background:#f0f0f0;transition:background .3s;}
+.cdot.done{background:var(--cc);}
+.cdot.cur{background:var(--cc);animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* 勋章 */
+.badge-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.btab{background:white;border:2px solid #eee;border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--muted);transition:all .2s;}
+.btab.active{background:var(--green);border-color:var(--green);color:white;}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;}
+.badge-card{background:var(--card);border-radius:15px;padding:14px 10px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);transition:transform .2s;position:relative;}
+.badge-card.unlocked{border:2px solid var(--sun);}
+.badge-card.unlocked:hover{transform:scale(1.05);}
+.badge-card.locked{opacity:.38;filter:grayscale(1);}
+.badge-card.special{border:2px solid #c77dff;}
+.badge-card.special.unlocked{border-color:#c77dff;background:linear-gradient(135deg,#fdf4ff,#fff);}
+.badge-icon{font-size:1.9rem;display:block;margin-bottom:5px;}
+.badge-name{font-size:.75rem;font-weight:700;color:var(--ink);}
+.badge-desc{font-size:.65rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.badge-rarity{font-size:.58rem;padding:1px 6px;border-radius:8px;margin-top:4px;display:inline-block;font-weight:700;}
+.r-normal{background:#f0f0f0;color:#888;}
+.r-rare{background:#e0f0ff;color:#457b9d;}
+.r-epic{background:#f3eafd;color:#7209b7;}
+.r-legend{background:linear-gradient(135deg,#fff3e0,#fdecea);color:#e63946;}
+.r-special{background:linear-gradient(135deg,#f3eafd,#e0f0ff);color:#7209b7;}
+.badge-new{position:absolute;top:-5px;right:-5px;background:var(--red);color:white;font-size:.55rem;font-weight:700;padding:2px 5px;border-radius:8px;}
+
+/* 昵称弹窗 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal-box{background:white;border-radius:24px;padding:32px 28px;max-width:380px;width:90%;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.modal-box h3{font-family:'ZCOOL XiaoWei',serif;font-size:1.3rem;color:var(--green);letter-spacing:3px;margin-bottom:6px;}
+.modal-box p{font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6;}
+.name-input{width:100%;border:2px solid #e0e0e0;border-radius:12px;padding:10px 14px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border .2s;margin-bottom:8px;}
+.name-input:focus{border-color:var(--green);}
+.name-hint{font-size:.72rem;color:var(--muted);margin-bottom:14px;}
+.name-error{font-size:.72rem;color:var(--red);margin-bottom:10px;display:none;}
+.modal-btns{display:flex;gap:10px;}
+.btn-cancel{flex:1;padding:10px;border:2px solid #eee;border-radius:12px;background:white;cursor:pointer;font-size:.9rem;color:var(--muted);}
+.btn-confirm{flex:1;padding:10px;border:none;border-radius:12px;background:var(--green);color:white;cursor:pointer;font-size:.9rem;font-weight:700;}
+.random-names{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.rname{background:#f5f5f5;border-radius:10px;padding:4px 10px;font-size:.75rem;cursor:pointer;transition:background .2s;}
+.rname:hover{background:#e8f5f0;color:var(--green);}
+
+/* 捐赠区 */
+.donate-card{background:linear-gradient(135deg,#fffbf0,#fff8f0);border-radius:var(--radius);padding:24px;box-shadow:0 2px 14px rgba(244,162,97,.15);border:2px solid #f4d0a0;text-align:center;}
+.donate-title{font-family:'ZCOOL XiaoWei',serif;font-size:1.2rem;color:#e76f51;letter-spacing:3px;margin-bottom:6px;}
+.donate-sub{font-size:.82rem;color:#888;line-height:1.7;margin-bottom:18px;}
+.donate-tiers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.dtier{background:white;border-radius:14px;padding:14px 10px;border:2px solid #f0e0c0;cursor:pointer;transition:all .2s;text-align:center;}
+.dtier:hover{border-color:var(--sun);transform:translateY(-2px);box-shadow:0 4px 14px rgba(244,162,97,.2);}
+.dtier-icon{font-size:1.6rem;margin-bottom:4px;}
+.dtier-name{font-size:.8rem;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.dtier-price{font-size:1rem;font-weight:900;color:var(--sun);}
+.dtier-desc{font-size:.65rem;color:var(--muted);margin-top:4px;line-height:1.4;}
+.donate-note{font-size:.72rem;color:var(--muted);line-height:1.6;}
+
+/* 学园动态 */
+.community-card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 2px 14px rgba(0,0,0,.06);}
+.comm-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:.87rem;}
+.comm-row:last-child{border:none;}
+.comm-emoji{font-size:1.2rem;flex-shrink:0;}
+.comm-text{flex:1;color:#444;line-height:1.5;}
+.comm-text b{color:var(--green);}
+
+/* FAB */
+.fab{position:fixed;bottom:22px;right:22px;background:var(--green);color:white;border:none;border-radius:50px;padding:13px 22px;font-family:'ZCOOL XiaoWei',serif;font-size:.95rem;letter-spacing:2px;cursor:pointer;box-shadow:0 6px 20px rgba(45,106,79,.4);transition:transform .2s,box-shadow .2s;text-decoration:none;z-index:100;}
+.fab:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(45,106,79,.5);}
+
+/* toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:white;border-radius:50px;padding:12px 22px;font-size:.88rem;font-weight:700;z-index:9999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:480px){
+  .college-grid{grid-template-columns:1fr 1fr;}
+  .badge-grid{grid-template-columns:repeat(3,1fr);}
+  .donate-tiers{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- 昵称编辑弹窗 -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-box">
+    <h3>✏️ 修改昵称</h3>
+    <p>2-12个字，积极正向，学园会过滤不当内容。每30天可改一次。</p>
+    <div class="random-names" id="randomNames"></div>
+    <input class="name-input" id="nameInput" maxlength="12" placeholder="输入你的昵称…">
+    <div class="name-hint">👆 点击上方随机昵称可快速填入</div>
+    <div class="name-error" id="nameError"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeNameModal()">取消</button>
+      <button class="btn-confirm" onclick="saveName()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 顶部学生卡片 -->
+<div class="hero">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatarEl" onclick="openNameModal()"></div>
+    <div class="avatar-edit" onclick="openNameModal()">✏️</div>
+  </div>
+  <div class="name-row">
+    <div class="student-name" id="studentNameEl">小学员</div>
+    <button class="name-edit-btn" onclick="openNameModal()">改昵称</button>
+  </div>
+  <div class="student-id-row">AI育学园 · 入学第 <span id="daysSinceEl">1</span> 天 · <span id="studentIdEl"></span></div>
+  <div class="badge-showcase" id="badgeShowcase"></div>
+  <div class="stats-row">
+    <div class="stat-pill">已完成 <b id="totalDoneEl">0</b> <span>节课</span></div>
+    <div class="stat-pill">点亮 <b id="collegesDoneEl">0</b> <span>个学院</span></div>
+    <div class="stat-pill">连续打卡 <b id="streakCountEl">0</b> <span>天</span></div>
+  </div>
+</div>
+
+<div class="section">
+
+  <!-- 打卡 -->
+  <div class="sec-title">🔥 学习打卡</div>
+  <div class="streak-card">
+    <div class="streak-fire">🔥</div>
+    <div style="flex:1">
+      <div class="streak-num" id="streakNumEl">0</div>
+      <div class="streak-label">天连续学习</div>
+      <div class="streak-dots" id="streakDotsEl"></div>
+    </div>
+  </div>
+
+  <!-- 技能树 -->
+  <div class="sec-title">🌳 我的技能树</div>
+  <div class="college-grid" id="collegeGrid"></div>
+
+  <!-- 成就勋章 折叠 -->
+  <div class="sec-title badge-toggle" onclick="toggleBadges()" style="cursor:pointer;user-select:none;">
+    🏅 成就勋章
+    <span id="badgeToggleIcon" style="margin-left:auto;font-size:.8rem;color:var(--muted);font-family:'Noto Sans SC',sans-serif;letter-spacing:0">点击展开 ▼</span>
+  </div>
+  <div id="badgeSection" style="display:none;">
+    <div class="badge-tabs">
+      <div class="btab active" onclick="switchTab(this,'all')">全部</div>
+      <div class="btab" onclick="switchTab(this,'learning')">学习类</div>
+      <div class="btab" onclick="switchTab(this,'streak')">坚持类</div>
+      <div class="btab" onclick="switchTab(this,'special')">⭐ 特别勋章</div>
+      <div class="btab" onclick="switchTab(this,'seasonal')">🎉 限定</div>
+    </div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </div>
+
+  <!-- 捐赠 -->
+  <div class="sec-title">🍑 支持学园</div>
+  <div class="donate-card">
+    <div class="donate-title">🌱 学园永久免费 · 捐赠完全自愿</div>
+    <div class="donate-sub">
+      AI育学园永久免费，所有内容对所有人开放。<br>
+      如果这里帮到了你，欢迎请九桃老师喝杯茶 🍵<br>
+      捐赠者将获得专属勋章和永久荣誉留名。
+    </div>
+    <div class="donate-tiers">
+
+      <!-- 青铜 -->
+      <div class="dtier dtier-bronze">
+        <div class="dtier-badge-wrap">
+          <div class="dtier-medal bronze-medal">🥉</div>
+          <div class="dtier-rays bronze-rays"></div>
+        </div>
+        <div class="dtier-tier-label bronze-label">入门守护</div>
+        <div class="dtier-icon">🍑</div>
+        <div class="dtier-name">一颗桃子</div>
+        <div class="dtier-price bronze-price">¥9.9</div>
+        <div class="dtier-perks">
+          <div class="perk">🛡️ 守护者勋章</div>
+          <div class="perk">✨ 昵称铜色光环</div>
+        </div>
+      </div>
+
+      <!-- 白银 -->
+      <div class="dtier dtier-silver">
+        <div class="dtier-badge-wrap">
+          <div class="dtier-medal silver-medal">🥈</div>
+          <div class="dtier-rays silver-rays"></div>
+        </div>
+        <div class="dtier-tier-label silver-label">白银守护</div>
+        <div class="dtier-icon">🧺</div>
+        <div class="dtier-name">一篓桃子</div>
+        <div class="dtier-price silver-price">¥49</div>
+        <div class="dtier-perks">
+          <div class="perk">🛡️ 守护者勋章</div>
+          <div class="perk">✨ 昵称银色光环</div>
+          <div class="perk">🎴 专属学员证</div>
+        </div>
+      </div>
+
+      <!-- 黄金 -->
+      <div class="dtier dtier-gold">
+        <div class="dtier-badge-wrap">
+          <div class="dtier-medal gold-medal">🥇</div>
+          <div class="dtier-rays gold-rays"></div>
+        </div>
+        <div class="dtier-tier-label gold-label">黄金守护</div>
+        <div class="dtier-icon">🌳</div>
+        <div class="dtier-name">桃园一亩</div>
+        <div class="dtier-price gold-price">¥99</div>
+        <div class="dtier-perks">
+          <div class="perk">🛡️ 守护者勋章</div>
+          <div class="perk">✨ 昵称金色光环</div>
+          <div class="perk">🎴 专属学员证</div>
+          <div class="perk">🏛️ 捐赠墙永久留名</div>
+        </div>
+      </div>
+
+      <!-- 传说 -->
+      <div class="dtier dtier-legend">
+        <div class="dtier-badge-wrap">
+          <div class="dtier-medal legend-medal">💎</div>
+          <div class="dtier-rays legend-rays"></div>
+        </div>
+        <div class="dtier-tier-label legend-label">传说守护</div>
+        <div class="dtier-icon">🏫</div>
+        <div class="dtier-name">共建学园</div>
+        <div class="dtier-price legend-price">自定义</div>
+        <div class="dtier-perks">
+          <div class="perk">💎 传说守护者勋章</div>
+          <div class="perk">✨ 昵称钻石光环</div>
+          <div class="perk">🎴 专属学员证</div>
+          <div class="perk">🏛️ 捐赠墙永久留名</div>
+          <div class="perk">🍑 九桃老师亲笔感谢信</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="donate-note">💡 捐赠功能即将上线，敬请期待。所有捐赠专用于学园内容建设和服务维护。</div>
+  </div>
+
+  <!-- 学园动态 -->
+  <div class="sec-title">👥 学园动态</div>
+  <div class="community-card" id="communityCard"></div>
+
+</div>
+
+<a href="/" class="fab">📚 继续学习</a>
+
+<script>
+// ===== 配置 =====
+const COLLEGES = [
+  {id:'tongshi',  name:'通识学院',  icon:'🌱', color:'#2a9d8f', total:8},
+  {id:'duihua',   name:'对话学院',  icon:'💬', color:'#457b9d', total:6},
+  {id:'xuexi',    name:'学习学院',  icon:'📖', color:'#06d6a0', total:10},
+  {id:'xiezuo',   name:'写作学院',  icon:'✍️', color:'#e63946', total:7},
+  {id:'tuxiang',  name:'图像学院',  icon:'🎨', color:'#f4a261', total:6},
+  {id:'shipin',   name:'视频学院',  icon:'🎬', color:'#7209b7', total:6},
+  {id:'shenghuo', name:'生活学院',  icon:'🏡', color:'#fb8500', total:6},
+  {id:'gongzuo',  name:'工作学院',  icon:'💼', color:'#3a86ff', total:7},
+  {id:'biancheng',name:'编程学院',  icon:'💻', color:'#4cc9f0', total:8},
+  {id:'jinjie',   name:'进阶学院',  icon:'🚀', color:'#c77dff', total:6},
+  {id:'longxia',  name:'小龙虾学院',icon:'🦞', color:'#ff4500', total:8},
+];
+
+const BADGES = [
+  // 学习类
+  {id:'first_step',    cat:'learning', icon:'🌱', name:'初出茅庐',  desc:'完成第一节课',       rarity:'normal',  cond:s=>s.total>=1},
+  {id:'first_talk',    cat:'learning', icon:'💬', name:'开口说话',  desc:'完成对话学院第一课', rarity:'normal',  cond:s=>s.cols.duihua>=1},
+  {id:'week_warrior',  cat:'learning', icon:'📖', name:'学霸附体',  desc:'单周完成5节课',      rarity:'normal',  cond:s=>s.total>=5},
+  {id:'night_owl',     cat:'learning', icon:'🦉', name:'夜猫子',    desc:'凌晨时段学习',       rarity:'normal',  cond:s=>s.nightOwl},
+  {id:'early_bird',    cat:'learning', icon:'🐦', name:'早起鸟',    desc:'早上6点前学习',      rarity:'normal',  cond:s=>s.earlyBird},
+  {id:'speed_learner', cat:'learning', icon:'⚡', name:'闪电学员',  desc:'单日完成3节课',      rarity:'normal',  cond:s=>s.total>=3},
+  {id:'three_cols',    cat:'learning', icon:'🚀', name:'融会贯通',  desc:'点亮任意3个学院',    rarity:'rare',    cond:s=>s.colsDone>=3},
+  {id:'all_cols',      cat:'learning', icon:'👑', name:'全院传说',  desc:'11个学院全点亮',     rarity:'epic',    cond:s=>s.colsDone>=11},
+  {id:'crayfish',      cat:'learning', icon:'🦞', name:'虾兵蟹将',  desc:'进入小龙虾学院',     rarity:'rare',    cond:s=>s.cols.longxia>=1},
+  // 坚持类
+  {id:'streak7',       cat:'streak',   icon:'🔥', name:'七天打卡',  desc:'连续学习7天',        rarity:'normal',  cond:s=>s.streak>=7},
+  {id:'streak30',      cat:'streak',   icon:'🕯️', name:'初心不忘',  desc:'连续打卡30天',       rarity:'rare',    cond:s=>s.streak>=30},
+  {id:'streak100',     cat:'streak',   icon:'💯', name:'百日坚持',  desc:'连续打卡100天',      rarity:'epic',    cond:s=>s.streak>=100},
+  {id:'streak365',     cat:'streak',   icon:'🗓️', name:'年度学员',  desc:'连续打卡365天',      rarity:'legend',  cond:s=>s.streak>=365},
+  {id:'weekend',       cat:'streak',   icon:'🎮', name:'周末不休',  desc:'周末连续学习4周',    rarity:'rare',    cond:s=>s.streak>=28},
+  // 特别勋章
+  {id:'pioneer',       cat:'special',  icon:'🏕️', name:'开荒元老',  desc:'学园上线首月注册',   rarity:'special', cond:s=>s.isPioneer},
+  {id:'early100',      cat:'special',  icon:'🔭', name:'早期探索者',desc:'学园前100名学生',    rarity:'special', cond:s=>s.isEarly100},
+  {id:'guardian',      cat:'special',  icon:'🛡️', name:'学园守护者',desc:'累计捐赠支持学园',   rarity:'special', cond:s=>s.isDonor},
+  {id:'transmitter',   cat:'special',  icon:'📣', name:'传道者',    desc:'成功邀请10名同学',   rarity:'special', cond:s=>s.invites>=10},
+  {id:'bug_hunter',    cat:'special',  icon:'🔍', name:'纠错英雄',  desc:'提交有效反馈3次',    rarity:'special', cond:s=>s.bugReports>=3},
+  {id:'builder',       cat:'special',  icon:'🧱', name:'学园一砖',  desc:'参与学园内容共建',   rarity:'special', cond:s=>s.isBuilder},
+  {id:'jiu_tao_pick',  cat:'special',  icon:'🍑', name:'九桃亲传',  desc:'被九桃老师点名表扬', rarity:'legend',  cond:s=>s.isJiuTaoPick},
+  {id:'shrimp_king',   cat:'special',  icon:'🦞', name:'虾王',      desc:'小龙虾学院全满+分享', rarity:'legend', cond:s=>s.isShrimpKing},
+  // 限定
+  {id:'spring_fest',   cat:'seasonal', icon:'🧧', name:'春节学习王',desc:'春节期间完成3节课',  rarity:'rare',    cond:s=>s.springFest},
+  {id:'summer',        cat:'seasonal', icon:'☀️', name:'暑期充电站',desc:'暑假期间完成10节课', rarity:'rare',    cond:s=>s.summer},
+  {id:'back_school',   cat:'seasonal', icon:'🎒', name:'开学季先锋',desc:'9月开学季完成5节课', rarity:'rare',    cond:s=>s.backSchool},
+  {id:'new_year',      cat:'seasonal', icon:'🎆', name:'跨年学习者',desc:'跨年夜完成一节课',   rarity:'rare',    cond:s=>s.newYear},
+];
+
+const RARITY_MAP = {normal:'普通',rare:'稀有',epic:'史诗',legend:'传说',special:'限定特供'};
+const RARITY_CLASS = {normal:'r-normal',rare:'r-rare',epic:'r-epic',legend:'r-legend',special:'r-special'};
+
+const ADJECTIVES = ['活泼的','好奇的','勤奋的','闪亮的','开心的','热情的','温柔的','勇敢的','聪明的','认真的','阳光的','努力的','坚持的'];
+const NOUNS = ['小龙虾','九桃','书虫','小墨','像素侠','小导演','悠悠','小钱','AI探索者','未来星','学习虫','知识树','小园丁'];
+const AVATARS = ['🌱','🌟','🦊','🐼','🦄','🐉','🦋','🌙','⭐','🎯','🍑','🦞','💫'];
+const BANNED = ['傻','蠢','死','滚','草','妈','操','狗','贱','垃圾'];
+
+function genRandomName() {
+  const a = ADJECTIVES[Math.floor(Math.random()*ADJECTIVES.length)];
+  const n = NOUNS[Math.floor(Math.random()*NOUNS.length)];
+  const suffix = Math.random()>.6 ? Math.floor(Math.random()*99)+'' : '';
+  return a+n+suffix;
+}
+
+// ===== 数据 =====
+function load(key){ try{ return JSON.parse(localStorage.getItem('mimoo_'+key)||'null'); }catch(e){ return null; } }
+function save(key,val){ localStorage.setItem('mimoo_'+key, JSON.stringify(val)); }
+
+function init() {
+  if (!load('profile')) {
+    save('profile',{
+      version:'1.0', student_id:'mimoo_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      created_at:new Date().toISOString(), last_active:new Date().toISOString(),
+      nickname:genRandomName(), avatar_seed:Math.floor(Math.random()*AVATARS.length),
+      is_pioneer:true, is_early100:false, is_donor:false, invites:0,
+      bug_reports:0, is_builder:false, is_jiu_tao_pick:false, is_shrimp_king:false,
+      nickname_changed_at:null, donate_tier:null
+    });
+  }
+  if (!load('progress')) {
+    const p={colleges:{}};
+    COLLEGES.forEach(c=>{p.colleges[c.id]={completed:0,courses:{}};});
+    // 演示：通识第一课已完成
+    p.colleges.tongshi.completed=1;
+    p.colleges.tongshi.courses['tongshi-01']={status:'completed',completed_at:new Date().toISOString()};
+    save('progress',p);
+  }
+  if (!load('achievements')) {
+    const a={badges:{}};
+    BADGES.forEach(b=>{a.badges[b.id]={unlocked:false,unlocked_at:null,is_new:false};});
+    save('achievements',a);
+    checkBadges();
+  }
+  if (!load('streak')) {
+    const today=new Date().toISOString().split('T')[0];
+    save('streak',{current_streak:1,longest_streak:1,last_checkin:today,checkin_history:[today]});
+  }
+}
+
+function getStats() {
+  const prog=load('progress'), streak=load('streak'), prof=load('profile');
+  let total=0,colsDone=0; const cols={};
+  COLLEGES.forEach(c=>{
+    const d=prog.colleges[c.id]?.completed||0;
+    cols[c.id]=d; total+=d; if(d>0) colsDone++;
+  });
+  const h=new Date().getHours();
+  return {
+    total, colsDone, cols, streak:streak.current_streak,
+    nightOwl:h>=0&&h<4, earlyBird:h>=5&&h<7,
+    isPioneer:prof.is_pioneer, isEarly100:prof.is_early100,
+    isDonor:prof.is_donor, invites:prof.invites||0,
+    bugReports:prof.bug_reports||0, isBuilder:prof.is_builder,
+    isJiuTaoPick:prof.is_jiu_tao_pick, isShrimpKing:prof.is_shrimp_king,
+    springFest:false, summer:false, backSchool:false, newYear:false,
+    createdAt:prof.created_at
+  };
+}
+
+function checkBadges() {
+  const stats=getStats(), ach=load('achievements');
+  let newBadge=null;
+  BADGES.forEach(b=>{
+    if(!ach.badges[b.id]?.unlocked && b.cond(stats)){
+      ach.badges[b.id]={unlocked:true,unlocked_at:new Date().toISOString(),is_new:true};
+      newBadge=b;
+    }
+  });
+  save('achievements',ach);
+  if(newBadge) showToast(`${newBadge.icon} 解锁成就：${newBadge.name}！`);
+}
+
+// ===== 渲染 =====
+let currentTab = 'all';
+
+function render() {
+  const prof=load('profile'), streak=load('streak'), prog=load('progress'), ach=load('achievements');
+  const stats=getStats();
+
+  document.getElementById('avatarEl').textContent=AVATARS[prof.avatar_seed||0];
+  document.getElementById('studentNameEl').textContent=prof.nickname||'小学员';
+  document.getElementById('studentIdEl').textContent='ID: '+prof.student_id.slice(-6).toUpperCase();
+  const created=new Date(prof.created_at);
+  document.getElementById('daysSinceEl').textContent=Math.max(1,Math.floor((Date.now()-created)/86400000));
+  document.getElementById('totalDoneEl').textContent=stats.total;
+  document.getElementById('collegesDoneEl').textContent=stats.colsDone;
+  document.getElementById('streakCountEl').textContent=streak.current_streak;
+  document.getElementById('streakNumEl').textContent=streak.current_streak;
+
+  // 展示已解锁徽章前5个
+  const showcase=document.getElementById('badgeShowcase');
+  showcase.innerHTML='';
+  BADGES.filter(b=>ach.badges[b.id]?.unlocked).slice(0,5).forEach(b=>{
+    const el=document.createElement('div');
+    el.className='showcase-badge'; el.textContent=b.icon; el.title=b.name;
+    showcase.appendChild(el);
+  });
+
+  // 打卡点
+  const dotsEl=document.getElementById('streakDotsEl'); dotsEl.innerHTML='';
+  const today=new Date().toISOString().split('T')[0];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const done=streak.checkin_history?.includes(ds);
+    const isToday=ds===today;
+    const dot=document.createElement('div');
+    dot.className=`sdot ${isToday&&done?'today':done?'done':'empty'}`;
+    dot.textContent=['日','一','二','三','四','五','六'][d.getDay()];
+    dotsEl.appendChild(dot);
+  }
+
+  // 技能树
+  const grid=document.getElementById('collegeGrid'); grid.innerHTML='';
+  COLLEGES.forEach(c=>{
+    const done=prog.colleges[c.id]?.completed||0;
+    const pct=Math.round(done/c.total*100);
+    const locked=done===0&&c.id!=='tongshi';
+    const card=document.createElement('div');
+    card.className=`col-card${locked?' locked':''}`;
+    card.style.setProperty('--cc',c.color);
+    const dotsHtml=Array.from({length:c.total},(_,i)=>{
+      const cls=i<done?'done':i===done&&done>0?'cur':'';
+      return `<div class="cdot ${cls}"></div>`;
+    }).join('');
+    card.innerHTML=`<span class="col-icon">${c.icon}</span>
+      <div class="col-name">${c.name}</div>
+      <div class="pb-wrap"><div class="pb-fill" style="width:${pct}%"></div></div>
+      <div class="pb-text"><span><b>${done}</b>/${c.total}节</span><span>${pct}%</span></div>
+      <div class="cdots">${dotsHtml}</div>`;
+    grid.appendChild(card);
+  });
+
+  // 勋章
+  renderBadges(currentTab);
+
+  // 学园动态
+  document.getElementById('communityCard').innerHTML=[
+    {e:'🎉',t:'本周新同学 <b>128</b> 人和你一起开始学习'},
+    {e:'📚',t:'今天全园完成了 <b>342</b> 节课'},
+    {e:'🔥',t:'本周最热门：<b>通识学院第一课</b>'},
+    {e:'👥',t:'和你同周入学的同学，平均已学完 <b>4</b> 节课'},
+    {e:'🏅',t:'今日共解锁成就 <b>56</b> 个'},
+    {e:'🛡️',t:'已有 <b>12</b> 位学园守护者捐赠支持'},
+  ].map(r=>`<div class="comm-row"><span class="comm-emoji">${r.e}</span><span class="comm-text">${r.t}</span></div>`).join('');
+}
+
+function renderBadges(tab) {
+  const ach=load('achievements');
+  const grid=document.getElementById('badgeGrid'); grid.innerHTML='';
+  const filtered=tab==='all'?BADGES:BADGES.filter(b=>b.cat===tab);
+  filtered.forEach(b=>{
+    const state=ach.badges[b.id];
+    const unlocked=state?.unlocked;
+    const card=document.createElement('div');
+    const isSpecial=b.cat==='special';
+    card.className=`badge-card ${unlocked?'unlocked':'locked'} ${isSpecial?'special':''}`;
+    card.innerHTML=`
+      ${state?.is_new?'<div class="badge-new">NEW</div>':''}
+      <span class="badge-icon">${b.icon}</span>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      <span class="badge-rarity ${RARITY_CLASS[b.rarity]}">${RARITY_MAP[b.rarity]}</span>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleBadges() {
+  const sec = document.getElementById('badgeSection');
+  const icon = document.getElementById('badgeToggleIcon');
+  const open = sec.style.display === 'none';
+  sec.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '收起 ▲' : '点击展开 ▼';
+  if(open) renderBadges(currentTab);
+}
+
+function switchTab(el,tab) {
+  document.querySelectorAll('.btab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab=tab;
+  renderBadges(tab);
+}
+
+// ===== 昵称系统 =====
+function openNameModal() {
+  const names=document.getElementById('randomNames'); names.innerHTML='';
+  for(let i=0;i<6;i++){
+    const n=genRandomName();
+    const el=document.createElement('div');
+    el.className='rname'; el.textContent=n;
+    el.onclick=()=>{ document.getElementById('nameInput').value=n; };
+    names.appendChild(el);
+  }
+  document.getElementById('nameInput').value='';
+  document.getElementById('nameError').style.display='none';
+  document.getElementById('nameModal').classList.add('open');
+}
+
+function closeNameModal() { document.getElementById('nameModal').classList.remove('open'); }
+
+function validateName(name) {
+  if(name.length<2||name.length>12) return '昵称长度需2-12个字符';
+  if(!/[\u4e00-\u9fa5a-zA-Z]/.test(name)) return '昵称需包含文字';
+  for(const w of BANNED){ if(name.includes(w)) return '昵称包含不当内容，请重新输入'; }
+  return null;
+}
+
+function saveName() {
+  const val=document.getElementById('nameInput').value.trim();
+  const err=validateName(val);
+  const errEl=document.getElementById('nameError');
+  if(err){ errEl.textContent=err; errEl.style.display='block'; return; }
+  const prof=load('profile');
+  prof.nickname=val; prof.nickname_changed_at=new Date().toISOString();
+  save('profile',prof);
+  closeNameModal();
+  render();
+  showToast('✅ 昵称已更新！');
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ===== 启动 =====
+init();
+render();
+
+// 首次成就弹窗
+setTimeout(()=>{
+  const ach=load('achievements');
+  const newOne=Object.entries(ach.badges).find(([,v])=>v.is_new);
+  if(newOne){
+    const badge=BADGES.find(b=>b.id===newOne[0]);
+    if(badge) showToast(`${badge.icon} 解锁成就：${badge.name}！`);
+    const updated=load('achievements');
+    Object.keys(updated.badges).forEach(k=>{updated.badges[k].is_new=false;});
+    save('achievements',updated);
+  }
+},800);
+
+document.getElementById('nameModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('nameModal')) closeNameModal();
+});
+</script>
+</body>
+</html>
